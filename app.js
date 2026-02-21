@@ -1,10 +1,10 @@
 const game = () => {
     let playerScore = 0;
-    let computerScore = 5;
-    let roundsPlayed = ;
+    let computerScore = 0;
+    let roundsPlayed = 0; // fixed
     const maxRounds = 10;
-    
-    // Get all the DOM elements we need
+
+    // DOM elements
     const playBtn = document.querySelector('.intro button');
     const introScreen = document.querySelector('.intro');
     const match = document.querySelector('.match');
@@ -15,10 +15,10 @@ const game = () => {
     const playerScoreDisplay = document.querySelector('.player-score p');
     const computerScoreDisplay = document.querySelector('.computer-score p');
 
-    // Create a new div for the final results and buttons
+    // Final results container
     const finalResultContainer = document.createElement('div');
     finalResultContainer.classList.add('text-center', 'mt-8', 'w-full');
-    
+
     const finalResultDisplay = document.createElement('h2');
     finalResultDisplay.classList.add('text-3xl', 'font-bold', 'mb-4', 'text-center');
 
@@ -29,110 +29,83 @@ const game = () => {
     finalResultContainer.appendChild(finalResultDisplay);
     finalResultContainer.appendChild(restartButton);
 
-    // Create audio elements for sound effects
+    // Sounds
     const shakeSound = new Audio('./sounds/whoosh.mp3');
     const winSound = new Audio('./sounds/win.mp3');
     const loseSound = new Audio('./sounds/lose.mp3');
 
-    // Preload all the images and sounds for a smoother experience
+    // Preload images
     const images = ['rock_hand.png', 'paper_hand.png', 'scissors_hand.png'];
-    images.forEach(img => {
-        new Image().src = `./images/${img}`;
+    images.forEach(img => new Image().src = `./images/${img}`);
+
+    // Start game
+    playBtn.addEventListener('click', () => {
+        introScreen.classList.add('hidden');
+        match.classList.remove('hidden');
+        match.classList.add('flex');
     });
 
-    // Start the game by clicking the 'Let's Play' button
-    const startGame = () => {
-        playBtn.addEventListener('click', () => {
-            introScreen.classList.add('hidden');
-            match.classList.remove('hidden');
-            match.classList.add('flex');
-        });
-    };
-
-    // Main game logic
+    // Play match
     const playMatch = () => {
         const computerOptions = ['rock', 'paper', 'scissors'];
 
         options.forEach(option => {
             option.addEventListener('click', function() {
-                if (roundsPlayed >= maxRounds) {
-                    return;
-                }
+                if (roundsPlayed >= maxRounds) return;
 
                 shakeSound.play();
 
+                // Reset animations
                 playerHand.style.animation = 'none';
                 computerHand.style.animation = 'none';
-                playerHand.src = `./images/rock_hand.png`;
-                computerHand.src = `./images/rock_hand.png`;
+                void playerHand.offsetWidth; // force reflow
+                void computerHand.offsetWidth;
 
-                playerHand.style.animation = `shakePlayer 1s ease forwards`;
-                computerHand.style.animation = `shakeComputer 1s ease forwards`;
+                // Start shaking animation
+                playerHand.style.animation = 'shakePlayer 1s ease forwards';
+                computerHand.style.animation = 'shakeComputer 1s ease forwards';
 
                 setTimeout(() => {
                     const playerChoice = this.classList[0];
-                    const computerNumber = Math.floor(Math.random() * 3);
-                    const computerChoice = computerOptions[computerNumber];
+                    const computerChoice = computerOptions[Math.floor(Math.random() * 3)];
 
                     playerHand.src = `./images/${playerChoice}_hand.png`;
                     computerHand.src = `./images/${computerChoice}_hand.png`;
-                    
+
                     compareHands(playerChoice, computerChoice);
 
                     roundsPlayed++;
-                    if (roundsPlayed >= maxRounds) {
-                        endGame();
-                    }
+                    if (roundsPlayed >= maxRounds) endGame();
                 }, 1000);
             });
         });
     };
-    
+
     const updateScore = () => {
         playerScoreDisplay.textContent = playerScore;
         computerScoreDisplay.textContent = computerScore;
     };
-    
+
     const compareHands = (playerChoice, computerChoice) => {
         if (playerChoice === computerChoice) {
             winnerDisplay.textContent = 'It is a tie';
             return;
         }
 
-        if (playerChoice === 'rock') {
-            if (computerChoice === 'scissors') {
-                winnerDisplay.textContent = 'Player Wins!';
-                winSound.play();
-                playerScore++;
-            } else {
-                winnerDisplay.textContent = 'Computer Wins!';
-                loseSound.play();
-                computerScore++;
-            }
-        }
-        
-        else if (playerChoice === 'paper') {
-            if (computerChoice === 'rock') {
-                winnerDisplay.textContent = 'Player Wins!';
-                winSound.play();
-                playerScore++;
-            } else {
-                winnerDisplay.textContent = 'Computer Wins!';
-                loseSound.play();
-                computerScore++;
-            }
-        }
-        
-        else if (playerChoice === 'scissors') {
-            if (computerChoice === 'paper') {
-                winnerDisplay.textContent = 'Player Wins!';
-                winSound.play();
-                playerScore++;
-            } else {
-                winnerDisplay.textContent = 'Computer Wins!';
-                loseSound.play();
-                computerScore++;
-            }
+        const wins = {
+            rock: 'scissors',
+            paper: 'rock',
+            scissors: 'paper'
+        };
+
+        if (wins[playerChoice] === computerChoice) {
+            winnerDisplay.textContent = 'Player Wins!';
+            winSound.play();
+            playerScore++;
+        } else {
+            winnerDisplay.textContent = 'Computer Wins!';
+            loseSound.play();
+            computerScore++;
         }
 
         updateScore();
@@ -140,14 +113,10 @@ const game = () => {
 
     const endGame = () => {
         let finalMessage = '';
-        if (playerScore > computerScore) {
-            finalMessage = 'You won the game! Congratulations!';
-        } else if (computerScore > playerScore) {
-            finalMessage = 'The computer won the game. Better luck next time!';
-        } else {
-            finalMessage = 'The game is a tie!';
-        }
-        
+        if (playerScore > computerScore) finalMessage = 'You won the game! 🎉';
+        else if (computerScore > playerScore) finalMessage = 'Computer won the game. 😢';
+        else finalMessage = 'The game is a tie! 🤝';
+
         finalResultDisplay.textContent = finalMessage;
         match.appendChild(finalResultContainer);
         winnerDisplay.classList.add('hidden');
@@ -161,14 +130,13 @@ const game = () => {
         updateScore();
         winnerDisplay.classList.remove('hidden');
         document.querySelector('.options').classList.remove('hidden');
-        finalResultContainer.remove();
+        if (finalResultContainer.parentNode) finalResultContainer.parentNode.removeChild(finalResultContainer);
+        playerHand.src = './images/rock_hand.png';
+        computerHand.src = './images/rock_hand.png';
     };
 
-    restartButton.addEventListener('click', () => {
-        resetGame();
-    });
+    restartButton.addEventListener('click', resetGame);
 
-    startGame();
     playMatch();
 };
 
