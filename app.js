@@ -3,6 +3,43 @@ const game = () => {
     let computerScore = 0;
     let roundsPlayed = 0; // fixed
     const maxRounds = 10;
+    const playerHistory = [];
+    const computerOptions = ['rock', 'paper', 'scissors'];
+    const counters = { rock: 'paper', paper: 'scissors', scissors: 'rock' };
+    const getDifficulty = () => document.querySelector('input[name="difficulty"]:checked')?.value ?? 'medium';
+
+    const getComputerChoice = (playerChoice) => {
+        const difficulty = getDifficulty();
+        const getRandomMove = () => computerOptions[Math.floor(Math.random() * 3)];
+
+        // Easy difficulty: random
+        if (difficulty === 'easy') return getRandomMove();
+
+        // Analyze last 3 moves plus current to predict next move
+        const analysisPool = [...playerHistory.slice(-3), playerChoice];
+        const frequencies = analysisPool.reduce((acc, move) => {
+            acc[move] = (acc[move] || 0) + 1;
+            return acc;
+        }, {});
+
+        const predictedMove = Object.keys(frequencies).reduce((a, b) => 
+            frequencies[a] >= frequencies[b] ? a : b
+        );
+
+        const roll = Math.random();
+
+        // Medium difficulty: 50% counter, 50% random
+        if (difficulty === 'medium') {
+            return roll < 0.5 ? counters[predictedMove] : getRandomMove();
+        }
+
+        // Hard difficulty: 60% counter, 25% random, 15% lose on purpose
+        if (roll < 0.60) return counters[predictedMove];
+        if (roll < 0.85) return getRandomMove();
+
+        const losingMoves = { rock: 'scissors', paper: 'rock', scissors: 'paper' };
+        return losingMoves[predictedMove];
+    };
 
     // DOM elements
     const playBtn = document.querySelector('.intro button');
@@ -47,7 +84,6 @@ const game = () => {
 
     // Play match
     const playMatch = () => {
-        const computerOptions = ['rock', 'paper', 'scissors'];
 
         options.forEach(option => {
             option.addEventListener('click', function() {
@@ -67,7 +103,8 @@ const game = () => {
 
                 setTimeout(() => {
                     const playerChoice = this.classList[0];
-                    const computerChoice = computerOptions[Math.floor(Math.random() * 3)];
+                    const computerChoice = getComputerChoice(playerChoice);
+                    playerHistory.push(playerChoice);
 
                     playerHand.src = `./images/${playerChoice}_hand.png`;
                     computerHand.src = `./images/${computerChoice}_hand.png`;
@@ -127,6 +164,7 @@ const game = () => {
         playerScore = 0;
         computerScore = 0;
         roundsPlayed = 0;
+        playerHistory.length = 0;
         updateScore();
         winnerDisplay.classList.remove('hidden');
         document.querySelector('.options').classList.remove('hidden');
