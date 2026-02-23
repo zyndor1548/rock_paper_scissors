@@ -5,32 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rock Paper Scissors</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom styles for the background image */
-        .body-background {
-            background-image: url('./images/bgmain.jpeg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
-
-        /* Keep the custom animations here */
-        @keyframes shakePlayer {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(10deg); }
-            50% { transform: rotate(-10deg); }
-            75% { transform: rotate(10deg); }
-            100% { transform: rotate(0deg); }
-        }
-        @keyframes shakeComputer {
-            0% { transform: scaleX(-1) rotate(0deg); }
-            25% { transform: scaleX(-1) rotate(-10deg); }
-            50% { transform: scaleX(-1) rotate(10deg); }
-            75% { transform: scaleX(-1) rotate(-10deg); }
-            100% { transform: scaleX(-1) rotate(0deg); }
-        }
-    </style>
+	<link rel="stylesheet" href="style.css">
+	<script src="app.js" defer></script>
 </head>
 <body class="body-background text-sky-900 font-sans flex flex-col items-center justify-center min-h-screen p-8">
 
@@ -76,6 +52,5 @@
         </div>
     </div>
     
-    <script src="app.js"></script>
 </body>
 </html>
