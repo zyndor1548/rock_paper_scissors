@@ -51,6 +51,7 @@ const game = () => {
     const winnerDisplay = document.querySelector('.winner');
     const playerScoreDisplay = document.querySelector('.player-score p');
     const computerScoreDisplay = document.querySelector('.computer-score p');
+    let isClickable = true;
 
     // Final results container
     const finalResultContainer = document.createElement('div');
@@ -87,9 +88,15 @@ const game = () => {
 
         options.forEach(option => {
             option.addEventListener('click', function() {
-                if (roundsPlayed >= maxRounds) return;
+                if (!isClickable || roundsPlayed >= maxRounds) return;
 
+                isClickable = false;
+                options.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-75', 'cursor-not-allowed');
+                });
                 shakeSound.play();
+
 
                 // Reset animations
                 playerHand.style.animation = 'none';
@@ -112,7 +119,16 @@ const game = () => {
                     compareHands(playerChoice, computerChoice);
 
                     roundsPlayed++;
-                    if (roundsPlayed >= maxRounds) endGame();
+                    if (roundsPlayed >= maxRounds) {
+                        endGame();
+                    } else {
+                        isClickable = true;
+                        options.forEach(btn => {
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                        });
+                    }
+
                 }, 1000);
             });
         });
@@ -164,8 +180,15 @@ const game = () => {
         playerScore = 0;
         computerScore = 0;
         roundsPlayed = 0;
+        isClickable = true;
+        options.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
+        });
         playerHistory.length = 0;
         updateScore();
+
+
         winnerDisplay.classList.remove('hidden');
         document.querySelector('.options').classList.remove('hidden');
         if (finalResultContainer.parentNode) finalResultContainer.parentNode.removeChild(finalResultContainer);
