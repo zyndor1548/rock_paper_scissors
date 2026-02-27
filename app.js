@@ -34,9 +34,71 @@ const game = () => {
     const winSound = new Audio('./sounds/win.mp3');
     const loseSound = new Audio('./sounds/lose.mp3');
 
-    // Preload images
-    const images = ['rock_hand.png', 'paper_hand.png', 'scissors_hand.png'];
-    images.forEach(img => new Image().src = `./images/${img}`);
+    // Preload default images
+    ['rock_hand.png', 'paper_hand.png', 'scissors_hand.png'].forEach(
+        img => (new Image().src = `./images/${img}`)
+    );
+
+    // -------------------------------------------------------
+    // Selected images per move type (player's custom choices)
+    // -------------------------------------------------------
+    const selectedImages = {
+        rock: './images/rock_hand.png',
+        paper: './images/paper_hand.png',
+        scissors: './images/scissors_hand.png'
+    };
+
+    // Pending (uncommitted) selection while the picker is open
+    const pendingImages = { ...selectedImages };
+
+    // --- Image Picker wiring ---
+    const pickerModal = document.getElementById('image-picker-modal');
+    const openPickerBtn = document.getElementById('open-image-picker');
+    const closePickerBtn = document.getElementById('close-image-picker');
+    const confirmPickerBtn = document.getElementById('confirm-image-picker');
+    const pickerImgs = document.querySelectorAll('.picker-img');
+
+    /** Highlight whichever image is currently pending for each type */
+    const refreshPickerHighlight = () => {
+        pickerImgs.forEach(img => {
+            const selected = img.dataset.src === pendingImages[img.dataset.type];
+            img.classList.toggle('border-sky-500', selected);
+            img.classList.toggle('border-transparent', !selected);
+            img.classList.toggle('scale-105', selected);
+        });
+    };
+
+    openPickerBtn.addEventListener('click', () => {
+        Object.assign(pendingImages, selectedImages); // sync to committed state
+        refreshPickerHighlight();
+        pickerModal.classList.remove('hidden');
+    });
+
+    const closeModal = () => pickerModal.classList.add('hidden');
+
+    closePickerBtn.addEventListener('click', closeModal);
+
+    // Close when clicking the backdrop
+    pickerModal.addEventListener('click', e => {
+        if (e.target === pickerModal) closeModal();
+    });
+
+    // Clicking an image marks it as pending
+    pickerImgs.forEach(img => {
+        img.addEventListener('click', () => {
+            pendingImages[img.dataset.type] = img.dataset.src;
+            refreshPickerHighlight();
+        });
+    });
+
+    // Confirm button: commit pending choices and close
+    confirmPickerBtn.addEventListener('click', () => {
+        Object.assign(selectedImages, pendingImages);
+        // Immediately show the new rock image on the game board
+        playerHand.src = selectedImages.rock;
+        computerHand.src = selectedImages.rock;
+        closeModal();
+    });
 
     // Start game
     playBtn.addEventListener('click', () => {
@@ -69,8 +131,9 @@ const game = () => {
                     const playerChoice = this.classList[0];
                     const computerChoice = computerOptions[Math.floor(Math.random() * 3)];
 
-                    playerHand.src = `./images/${playerChoice}_hand.png`;
-                    computerHand.src = `./images/${computerChoice}_hand.png`;
+                    // Player uses their custom image; computer uses the default set
+                    playerHand.src = selectedImages[playerChoice];
+                    computerHand.src = selectedImages[computerChoice];
 
                     compareHands(playerChoice, computerChoice);
 
@@ -130,9 +193,10 @@ const game = () => {
         updateScore();
         winnerDisplay.classList.remove('hidden');
         document.querySelector('.options').classList.remove('hidden');
-        if (finalResultContainer.parentNode) finalResultContainer.parentNode.removeChild(finalResultContainer);
-        playerHand.src = './images/rock_hand.png';
-        computerHand.src = './images/rock_hand.png';
+        if (finalResultContainer.parentNode)
+            finalResultContainer.parentNode.removeChild(finalResultContainer);
+        playerHand.src = selectedImages.rock;
+        computerHand.src = selectedImages.rock;
     };
 
     restartButton.addEventListener('click', resetGame);
